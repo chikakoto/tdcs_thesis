@@ -1,7 +1,7 @@
 tDCS Thesis
 ==============================
 
-The thesis analyzes magnetic fields from MRI images that conduct tDCS on models and the human brain.
+The project analyzes magnetic fields from MRI images that conduct tDCS on models and the human brain.
 
 Project Organization
 ------------

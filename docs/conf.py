@@ -231,7 +231,7 @@ man_pages = [
 texinfo_documents = [
     ('index', 'tdcs_thesis', u'tDCS Thesis Documentation',
      u"Chikako Olsen", 'tDCS Thesis',
-     'The thesis analyzes magnetic fields from MRI images that conduct tDCS on models and the human brain.', 'Miscellaneous'),
+     'The project analyzes magnetic fields from MRI images that conduct tDCS on models and the human brain.', 'Miscellaneous'),
 ]
 
 # Documents to append as an appendix to all manuals.
