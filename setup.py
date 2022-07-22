@@ -4,7 +4,7 @@ setup(
     name='src',
     packages=find_packages(),
     version='0.1.0',
-    description='The thesis on tDCS oto see   whether or not it works on human brain',
+    description='The thesis analyzes magnetic fields from MRI images that conduct tDCS on models and the human brain.',
     author='Chikako Olsen',
     license='',
 )

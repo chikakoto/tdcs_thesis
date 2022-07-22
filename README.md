@@ -1,7 +1,7 @@
 tDCS Thesis
 ==============================
 
-The thesis on tDCS oto see   whether or not it works on human brain
+The thesis analyzes magnetic fields from MRI images that conduct tDCS on models and the human brain.
 
 Project Organization
 ------------
