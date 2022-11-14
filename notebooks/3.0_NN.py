@@ -41,7 +41,7 @@ model_path =  dir_path+"models/"
 
 # In[4]:
 
-file_mean = save_path+"fmap_mean.txt"
+file_mean = save_path+"fmap_mean_32to38.txt"
 columns_mean =['exp', 'mini_exp', 'i', 'j', 'k', 'mean0', 'mean1', 'mean2', 'mean3', 'mean4', 'theory']
 data = np.loadtxt(file_mean);
 
@@ -174,8 +174,8 @@ for i in range(1, max_range_layer):
     coef_unit = []
     err_unit = []
     for j in range(1, max_range_unit):
-        print("##### Layer:"+str(i)+" Unit:"+str(j)+" #####")
-        acc, loss, coef, err = create_nn(i, j)
+        print("##### Layer:"+str(i)+" Unit:"+str(j*10)+" #####")
+        acc, loss, coef, err = create_nn(i, j*10)
         acc_unit.append(acc)
         loss_unit.append(loss)
         coef_unit.append(coef)
@@ -190,14 +190,14 @@ for i in range(1, max_range_layer):
 # In[219]:
 
 
-xlabels = range(1, max_range_unit)
+xlabels = range(10, max_range_unit*10, 10)
 ylabels = range(1, max_range_layer)
 fig, ax = plt.subplots(figsize=(10,5))
 sns.heatmap(acc_arr, linewidth=0.5, xticklabels=xlabels, yticklabels=ylabels, annot=True)
 ax.set_title('Accuracy Heatmap', fontsize=10)
 ax.set_xlabel('Unit', fontsize=10)
 ax.set_ylabel('Layer', fontsize=10)
-plt.savefig('accuracy_heatmap.png')
+plt.savefig('accuracy_heatmap2.png')
 
 
 # In[221]:
@@ -208,7 +208,7 @@ ax = sns.heatmap(loss_arr, linewidth=0.5, xticklabels=xlabels, yticklabels=ylabe
 ax.set_title('Loss Heatmap', fontsize=10)
 ax.set_xlabel('Unit', fontsize=10)
 ax.set_ylabel('Layer', fontsize=10)
-plt.savefig('loss_heatmap.png')
+plt.savefig('loss_heatmap2.png')
 
 
 # In[224]:
@@ -219,7 +219,7 @@ sns.heatmap(coef_arr, linewidth=0.5, xticklabels=xlabels, yticklabels=ylabels, a
 ax.set_title('Correlation Coefficient Heatmap', fontsize=10)
 ax.set_xlabel('Unit', fontsize=10)
 ax.set_ylabel('Layer', fontsize=10)
-plt.savefig('corr_heatmap.png')
+plt.savefig('corr_heatmap2.png')
 
 
 # In[286]:
@@ -228,7 +228,7 @@ sns.heatmap(err_arr, linewidth=0.5, xticklabels=xlabels, yticklabels=ylabels, an
 ax.set_title('Standard Error Heatmap', fontsize=10)
 ax.set_xlabel('Unit', fontsize=10)
 ax.set_ylabel('Layer', fontsize=10)
-plt.savefig('std_err_heatmap.png')
+plt.savefig('std_err_heatmap2.png')
 
 
 
