@@ -3,6 +3,7 @@
 
 # In[1]:
 
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -14,10 +15,12 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.metrics import r2_score
 
+#
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 from tensorflow.keras.layers import Flatten, Dense
+
 
 from sklearn.model_selection import GridSearchCV
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -25,28 +28,34 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from scikeras.wrappers import KerasRegressor
 from sklearn.ensemble import AdaBoostRegressor
 
+import pickle
+
 
 # # Load prepared data
 
-# In[2]:
+# In[42]:
 
-dir_path = "/Users/chikakoolsen/opt/python/thesis/code/tdcs_thesis/"
-#dir_path = "/Users/mriworkshop/Documents/TDCS/code/tdcs_thesis/"
-save_path = dir_path+"data/raw/"
+
+# dir_path = "/Users/chikakoolsen/opt/python/thesis/code/tdcs_thesis/"
+# dir_path = "/Users/mriworkshop/Documents/TDCS/code/tdcs_thesis/"
+dir_path = "/Users/nei/duke/chikako/code/"
+data_path = dir_path+"data/raw/"
 img_path =  dir_path+"data/processed/"
-model_path =  dir_path+"models/"
+model_path = dir_path+"models/"
 
 
 # ## fmap mean all experiments
 
-# In[4]:
+# In[3]:
 
-file_mean = save_path+"fmap_mean_32to38.txt"
+
+file_mean = data_path+"fmap_mean_32to38.txt"
 columns_mean =['exp', 'mini_exp', 'i', 'j', 'k', 'mean0', 'mean1', 'mean2', 'mean3', 'mean4', 'theory']
 data = np.loadtxt(file_mean);
 
 
-# In[5]:
+# In[4]:
+
 
 df = pd.DataFrame(data, columns=columns_mean)
 df = df.astype({"exp": int, "i": int, "j": int, "k": int, "mini_exp": int})
@@ -57,14 +66,17 @@ df = df.astype({"exp": int, "i": int, "j": int, "k": int, "mini_exp": int})
 
 # ## Data 1. fmap mean all experiments
 
-# In[10]:
+# In[6]:
+
+
 # df1_train = df[~((df['exp']==36) & ((df['mini_exp']==5) | (df['mini_exp']==6)))]
 # df1_val =  df[(df['exp']==36) & (df['mini_exp']==5)]
 # df1_test =  df[(df['exp']==36) & (df['mini_exp']==6)]
 
 
 
-# In[11]:
+# In[8]:
+
 
 # X1_train = df1_train.iloc[:, 5:-1].values 
 # y1_train = df1_train['theory'].values
@@ -79,8 +91,7 @@ df = df.astype({"exp": int, "i": int, "j": int, "k": int, "mini_exp": int})
 
 # ## Data2: One experiment
 
-# In[57]:
-
+# In[10]:
 
 df_train = df[(df['exp']==36) & (df['mini_exp']!=6)]
 df_test = df[(df['exp']==36) & (df['mini_exp']==6)]
@@ -89,15 +100,28 @@ df_test = df[(df['exp']==36) & (df['mini_exp']==6)]
 
 # ## Data4: None zero
 
-# In[23]:
+# In[28]:
+
 
 df_nonzero = df[(df['mean0']!=0.0) & (df['mean1']!=0.0) & (df['mean2']!=0.0) & (df['mean3']!=0.0) & (df['mean4']!=0.0)]
+
+
+# In[29]:
+
+
+df_nonzero
+
+
+# In[32]:
+
 
 df4_train = df_nonzero[~((df_nonzero['exp']==36) & ((df_nonzero['mini_exp']==6) | (df_nonzero['mini_exp']==5)))]
 df4_test =  df_nonzero[(df_nonzero['exp']==36) & (df_nonzero['mini_exp']==5)]
 df4_pred =  df_nonzero[(df_nonzero['exp']==36) & (df_nonzero['mini_exp']==6)]
 
-# In[24]:
+
+# In[33]:
+
 
 X4_train = df4_train.iloc[:, 5:-1].values
 y4_train = df4_train['theory'].values
@@ -111,11 +135,9 @@ y4_pred = df4_pred['theory'].values
 
 
 
-# # Neural Network
+# # Nonzero 32 to 38
 
-# ## Find out best layer and units
-
-# In[197]:
+# In[35]:
 
 
 X_train = X4_train
@@ -124,111 +146,163 @@ X_test = X4_test
 y_test = y4_test
 
 
-
 # In[63]:
 
 
-myCallbacks = [tf.keras.callbacks.EarlyStopping(monitor='val_accuracy', patience=10, mode='max'),
-             tf.keras.callbacks.EarlyStopping(monitor='loss', patience=10, mode='min')]
+shape = (len(X_train[0]),)
+model = keras.Sequential()
+model.add(Dense(10, activation='relu', input_shape=shape)) 
+model.add(Dense(10, activation='relu'))
+model.add(Dense(10, activation='relu'))
+model.add(Dense(1, activation='linear'))
+model.compile(optimizer='adamax', loss='mse', metrics=["accuracy"])
 
 
-# In[172]:
+# In[64]:
 
 
-def create_nn(layer_size, unit_size):
-    model = keras.Sequential()
-    for i in range(1, layer_size):
-        if i == 1:
-            model.add(Dense(unit_size, activation='relu', input_shape=(len(X_train[0]),)))
-        else:
-            model.add(Dense(unit_size, activation='relu'))
-    
-    model.add(Dense(1, activation="linear"))
-    model.compile(optimizer='adam', loss='mse', metrics=['accuracy'])
-    model.fit(X_train, y_train, epochs=100, validation_data=[X_test, y_test], callbacks=myCallbacks)
-    
-    y_predict = model.predict(X_test)
-    evaluate = model.evaluate(X_test, y_test)
-    corr = np.corrcoef(y_predict.flatten(), y_test)
-    m, b, r, p, st_er = stats.linregress(y_test.flatten(), y_predict.flatten()) 
-    
-    loss = evaluate[0]
-    acc = evaluate[1]
-    coef = corr[0][1]
-    
-    return acc, loss, coef, st_er
+history = model.fit(X_train, y_train, epochs=100, batch_size=32, validation_data=[X_test, y_test])
 
 
-# In[203]:
+# In[65]:
 
 
-max_range_layer = 11
-max_range_unit = 11
-acc_arr = []
-loss_arr = []
-coef_arr = []
-err_arr = []
-for i in range(1, max_range_layer):
-    acc_unit = []
-    loss_unit = []
-    coef_unit = []
-    err_unit = []
-    for j in range(1, max_range_unit):
-        print("##### Layer:"+str(i)+" Unit:"+str(j*10)+" #####")
-        acc, loss, coef, err = create_nn(i, j*10)
-        acc_unit.append(acc)
-        loss_unit.append(loss)
-        coef_unit.append(coef)
-        err_unit.append(err)
-    
-    acc_arr.append(acc_unit)
-    loss_arr.append(loss_unit)
-    coef_arr.append(coef_unit)
-    err_arr.append(err_unit)
+train_pred = model.predict(X_train)
+print(mse(train_pred, y_train))
+print(mape(train_pred, y_train))
+test_pred = model.predict(X_test)
+print(mse(test_pred, y_test))
+print(mape(test_pred, y_test))
 
 
-# In[219]:
+# In[66]:
 
 
-xlabels = range(10, max_range_unit*10, 10)
-ylabels = range(1, max_range_layer)
-fig, ax = plt.subplots(figsize=(10,5))
-sns.heatmap(acc_arr, linewidth=0.5, xticklabels=xlabels, yticklabels=ylabels, annot=True)
-ax.set_title('Accuracy Heatmap', fontsize=10)
-ax.set_xlabel('Unit', fontsize=10)
-ax.set_ylabel('Layer', fontsize=10)
-plt.savefig('accuracy_heatmap2.png')
+model.evaluate(X_test, y_test)
 
 
-# In[221]:
+# In[67]:
 
 
-#fig, ax = plt.subplots(figsize=(10,5))
-ax = sns.heatmap(loss_arr, linewidth=0.5, xticklabels=xlabels, yticklabels=ylabels, annot=True)
-ax.set_title('Loss Heatmap', fontsize=10)
-ax.set_xlabel('Unit', fontsize=10)
-ax.set_ylabel('Layer', fontsize=10)
-plt.savefig('loss_heatmap2.png')
+np.corrcoef(test_pred.flatten(), y_test)
 
 
-# In[224]:
+# In[68]:
 
 
-fig, ax = plt.subplots(figsize=(8,5))
-sns.heatmap(coef_arr, linewidth=0.5, xticklabels=xlabels, yticklabels=ylabels, annot=True)
-ax.set_title('Correlation Coefficient Heatmap', fontsize=10)
-ax.set_xlabel('Unit', fontsize=10)
-ax.set_ylabel('Layer', fontsize=10)
-plt.savefig('corr_heatmap2.png')
+model.summary()
 
 
-# In[286]:
-fig, ax = plt.subplots(figsize=(10,5))
-sns.heatmap(err_arr, linewidth=0.5, xticklabels=xlabels, yticklabels=ylabels, annot=True)
-ax.set_title('Standard Error Heatmap', fontsize=10)
-ax.set_xlabel('Unit', fontsize=10)
-ax.set_ylabel('Layer', fontsize=10)
-plt.savefig('std_err_heatmap2.png')
+# In[69]:
+
+
+history.history
+
+
+# In[73]:
+
+
+file = model_path+'model_nonzero_32to38.sav'
+pickle.dump(model, open(file, 'wb'))
+
+
+
+# ## Plot
+
+# ### Loss function (MSE)
+
+# In[70]:
+
+
+model_df = pd.DataFrame(history.history)
+model_df[['loss', 'val_loss']].plot()
+plt.xlabel("Number of Epochs")
+plt.ylabel("Loss")
+plt.title("Training and Validation Loss Over Training Period", pad=12);
+plt.savefig(img_path+'loss_32to38.png')
+
+# ### Accuracy
+
+# In[71]:
+
+
+model_df[['accuracy', 'val_accuracy']].plot()
+plt.xlabel("Number of Epochs")
+plt.ylabel("Accuracy")
+plt.title("Training and Validation Accuray Over Training Period", pad=12);
+plt.savefig(img_path+'accuracy_32to38.png')
+
+# ### Theory vs Predict
+
+# In[72]:
+
+
+x = y_test.flatten()
+y = test_pred.flatten()
+m, b, r, p, st_er = stats.linregress(x,y) 
+
+yfit = [b + m * xi for xi in x]
+yisx = [0 + 1 * xi for xi in x]
+plt.plot(x, yfit)
+plt.plot(x, yisx)
+
+plt.scatter(y_test, test_pred,  color='black')
+plt.axis([0,100, 0, 100])
+plt.xlabel("Theory (nT)")
+plt.ylabel("Prediction (nT)")
+plt.title("Neural Network Prediction vs Theory", fontsize=15)
+# print(r, st_er)
+print("r: {:.5f}, st_er: {:.6f}".format(r, st_er))
+print("y = "+str(round(m,4))+"*x + "+str(round(b,4)))
+plt.savefig(img_path+'theovspred_32to38.png')
+
+# # Output data
+
+# In[74]:
+
+
+test_pred = model.predict(X4_pred)
+
+
+# In[75]:
+
+
+df4_pred['predict'] = test_pred
+
+
+
+
+# In[78]:
+
+
+df_test['predict'] = 0.00
+
+
+# In[79]:
+
+
+df_out = df_test[['i', 'j', 'k', 'predict']]
+df_pre = df4_pred[['i', 'j', 'k', 'predict']]
+
+
+
+# In[81]:
+
+
+for x in range(len(df_pre)):
+    i = df_pre.iloc[x, :]['i'].astype(int)
+    j = df_pre.iloc[x, :]['j'].astype(int)
+    k = df_pre.iloc[x, :]['k'].astype(int)
+    pred = df_pre.iloc[x, :]['predict']
+    idx = df_out[(df_out['i']==i) & (df_out['j']==j) & (df_out['k']==k)].index
+    df_out.loc[idx, 'predict']= pred
+
+
+
+# In[84]:
+
+
+np.savetxt(img_path+"nn_nonzero_32to38.txt", df_out[['i', 'j', 'k', 'predict']], fmt="%i %i %i %s")
 
 
 
