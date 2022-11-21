@@ -30,11 +30,14 @@ from sklearn.ensemble import AdaBoostRegressor
 
 # In[2]:
 
-dir_path = "/Users/chikakoolsen/opt/python/thesis/code/tdcs_thesis/"
-#dir_path = "/Users/mriworkshop/Documents/TDCS/code/tdcs_thesis/"
-save_path = dir_path+"data/raw/"
-img_path =  dir_path+"data/processed/"
-model_path =  dir_path+"models/"
+# dir_path = "/Users/chikakoolsen/opt/python/thesis/code/"
+# dir_path = "/Users/mriworkshop/Documents/TDCS/code/"
+dir_path = "/Users/nei/duke/chikako/"
+save_path = dir_path+"tdcs_thesis/data/raw/"
+img_path =  dir_path+"tdcs_thesis/data/processed/"
+model_path =  dir_path+"tdcs_thesis/models/"
+out_path = dir_path+"scp/"
+fname = "_32to38"
 
 
 # ## fmap mean all experiments
@@ -58,22 +61,22 @@ df = df.astype({"exp": int, "i": int, "j": int, "k": int, "mini_exp": int})
 # ## Data 1. fmap mean all experiments
 
 # In[10]:
-# df1_train = df[~((df['exp']==36) & ((df['mini_exp']==5) | (df['mini_exp']==6)))]
-# df1_val =  df[(df['exp']==36) & (df['mini_exp']==5)]
-# df1_test =  df[(df['exp']==36) & (df['mini_exp']==6)]
+df1_train = df[~((df['exp']==36) & ((df['mini_exp']==5) | (df['mini_exp']==6)))]
+df1_val =  df[(df['exp']==36) & (df['mini_exp']==5)]
+df1_test =  df[(df['exp']==36) & (df['mini_exp']==6)]
 
 
 
 # In[11]:
 
-# X1_train = df1_train.iloc[:, 5:-1].values 
-# y1_train = df1_train['theory'].values
+X1_train = df1_train.iloc[:, 5:-1].values 
+y1_train = df1_train['theory'].values
 
-# X1_test = df1_val.iloc[:, 5:-1].values 
-# y1_test = df1_val['theory'].values
+X1_test = df1_val.iloc[:, 5:-1].values 
+y1_test = df1_val['theory'].values
 
-# X1_pred = df1_test.iloc[:, 5:-1].values 
-# y1_pred = df1_val['theory'].values
+X1_pred = df1_test.iloc[:, 5:-1].values 
+y1_pred = df1_val['theory'].values
 
 
 
@@ -85,6 +88,12 @@ df = df.astype({"exp": int, "i": int, "j": int, "k": int, "mini_exp": int})
 df_train = df[(df['exp']==36) & (df['mini_exp']!=6)]
 df_test = df[(df['exp']==36) & (df['mini_exp']==6)]
 
+
+X2_train = df_train.iloc[:, 5:-1].values
+y2_train = df_train['theory'].values
+
+X2_test = df_test.iloc[:, 5:-1].values
+y2_test = df_test['theory'].values
 
 
 # ## Data4: None zero
@@ -118,10 +127,10 @@ y4_pred = df4_pred['theory'].values
 # In[197]:
 
 
-X_train = X4_train
-y_train = y4_train
-X_test = X4_test
-y_test = y4_test
+X_train = X1_train
+y_train = y1_train
+X_test = X1_test
+y_test = y1_test
 
 
 
@@ -174,8 +183,8 @@ for i in range(1, max_range_layer):
     coef_unit = []
     err_unit = []
     for j in range(1, max_range_unit):
-        print("##### Layer:"+str(i)+" Unit:"+str(j*10)+" #####")
-        acc, loss, coef, err = create_nn(i, j*10)
+        print("##### Layer:"+str(i)+" Unit:"+str(j)+" #####")
+        acc, loss, coef, err = create_nn(i, j)
         acc_unit.append(acc)
         loss_unit.append(loss)
         coef_unit.append(coef)
@@ -190,36 +199,34 @@ for i in range(1, max_range_layer):
 # In[219]:
 
 
-xlabels = range(10, max_range_unit*10, 10)
+xlabels = range(1, max_range_unit)
 ylabels = range(1, max_range_layer)
 fig, ax = plt.subplots(figsize=(10,5))
 sns.heatmap(acc_arr, linewidth=0.5, xticklabels=xlabels, yticklabels=ylabels, annot=True)
 ax.set_title('Accuracy Heatmap', fontsize=10)
 ax.set_xlabel('Unit', fontsize=10)
 ax.set_ylabel('Layer', fontsize=10)
-plt.savefig('accuracy_heatmap2.png')
+plt.savefig(out_path+'accuracy_heatmap'+fname+'.png')
 
 
 # In[221]:
 
-
-#fig, ax = plt.subplots(figsize=(10,5))
+fig, ax = plt.subplots(figsize=(10,5))
 ax = sns.heatmap(loss_arr, linewidth=0.5, xticklabels=xlabels, yticklabels=ylabels, annot=True)
 ax.set_title('Loss Heatmap', fontsize=10)
 ax.set_xlabel('Unit', fontsize=10)
 ax.set_ylabel('Layer', fontsize=10)
-plt.savefig('loss_heatmap2.png')
+plt.savefig(out_path+'loss_heatmap'+fname+'.png')
 
 
 # In[224]:
-
 
 fig, ax = plt.subplots(figsize=(8,5))
 sns.heatmap(coef_arr, linewidth=0.5, xticklabels=xlabels, yticklabels=ylabels, annot=True)
 ax.set_title('Correlation Coefficient Heatmap', fontsize=10)
 ax.set_xlabel('Unit', fontsize=10)
 ax.set_ylabel('Layer', fontsize=10)
-plt.savefig('corr_heatmap2.png')
+plt.savefig(out_path+'corr_heatmap'+fname+'.png')
 
 
 # In[286]:
@@ -228,7 +235,24 @@ sns.heatmap(err_arr, linewidth=0.5, xticklabels=xlabels, yticklabels=ylabels, an
 ax.set_title('Standard Error Heatmap', fontsize=10)
 ax.set_xlabel('Unit', fontsize=10)
 ax.set_ylabel('Layer', fontsize=10)
-plt.savefig('std_err_heatmap2.png')
+plt.savefig(out_path+'std_err_heatmap'+fname+'.png')
 
 
+div = np.divide(coef_arr,err_arr)
+div = np.nan_to_num(div)
 
+fig, ax = plt.subplots(figsize=(10,5))
+sns.heatmap(div.astype(int), linewidth=0.5, xticklabels=xlabels, yticklabels=ylabels, annot=True, fmt='d')
+ax.set_title('Correlation / Standard Error Heatmap', fontsize=10)
+ax.set_xlabel('Unit', fontsize=10)
+ax.set_ylabel('Layer', fontsize=10)
+plt.savefig(out_path+'crr_div_err'+fname+'.png')
+
+div2 = np.divide(div, loss_arr)
+
+fig, ax = plt.subplots(figsize=(10,5))
+ax = sns.heatmap(div2, linewidth=0.5, xticklabels=xlabels, yticklabels=ylabels, annot=True)
+ax.set_title('Correlation / (Standard Error * Loss) Heatmap', fontsize=10)
+ax.set_xlabel('Unit', fontsize=10)
+ax.set_ylabel('Layer', fontsize=10)
+plt.savefig(out_path+'corr_div_err_mult_loss'+fname+'.png')
