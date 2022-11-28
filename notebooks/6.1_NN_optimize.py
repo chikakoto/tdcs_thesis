@@ -37,14 +37,16 @@ save_path = dir_path+"tdcs_thesis/data/raw/"
 img_path =  dir_path+"tdcs_thesis/data/processed/"
 model_path =  dir_path+"tdcs_thesis/models/"
 out_path = dir_path+"scp/"
-fname = "_32to38"
+# fname = "_32to38"
+fname = "_32to38_erode"
 
 
 # ## fmap mean all experiments
 
 # In[4]:
 
-file_mean = save_path+"fmap_mean_32to38.txt"
+# file_mean = save_path+"fmap_mean_32to38.txt"
+file_mean = save_path+"fmap_mean_erode.txt"
 columns_mean =['exp', 'mini_exp', 'i', 'j', 'k', 'mean0', 'mean1', 'mean2', 'mean3', 'mean4', 'theory']
 data = np.loadtxt(file_mean);
 
@@ -127,17 +129,17 @@ y4_pred = df4_pred['theory'].values
 # In[197]:
 
 
-X_train = X1_train
-y_train = y1_train
-X_test = X1_test
-y_test = y1_test
+X_train = X4_train
+y_train = y4_train
+X_test = X4_test
+y_test = y4_test
 
 
 
 # In[63]:
 
 
-myCallbacks = [tf.keras.callbacks.EarlyStopping(monitor='val_accuracy', patience=10, mode='max'),
+myCallbacks = [tf.keras.callbacks.EarlyStopping(monitor='accuracy', patience=10, mode='max'),
              tf.keras.callbacks.EarlyStopping(monitor='loss', patience=10, mode='min')]
 
 
@@ -154,7 +156,7 @@ def create_nn(layer_size, unit_size):
     
     model.add(Dense(1, activation="linear"))
     model.compile(optimizer='adam', loss='mse', metrics=['accuracy'])
-    model.fit(X_train, y_train, epochs=100, validation_data=[X_test, y_test], callbacks=myCallbacks)
+    model.fit(X_train, y_train, epochs=100, callbacks=myCallbacks)
     
     y_predict = model.predict(X_test)
     evaluate = model.evaluate(X_test, y_test)
