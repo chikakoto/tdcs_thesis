@@ -214,7 +214,7 @@ plt.savefig(out_path+'accuracy_heatmap'+fname+'.png')
 # In[221]:
 
 fig, ax = plt.subplots(figsize=(10,5))
-ax = sns.heatmap(loss_arr, linewidth=0.5, xticklabels=xlabels, yticklabels=ylabels, annot=True)
+ax = sns.heatmap(loss_arr, linewidth=0.5, xticklabels=xlabels, yticklabels=ylabels, annot=True, cmap=sns.cm.rocket_r)
 ax.set_title('Loss Heatmap', fontsize=10)
 ax.set_xlabel('Unit', fontsize=10)
 ax.set_ylabel('Layer', fontsize=10)
